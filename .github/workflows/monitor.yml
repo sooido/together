@@ -1,4 +1,4 @@
-name: Oulim Monitor
+name: together
 
 on:
   schedule:
