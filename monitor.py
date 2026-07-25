@@ -37,7 +37,8 @@ except:
 new_seen = set(seen)
 
 for row in target.find_all("tr"):
-
+print("공고번호:", num)
+print("근무지:", workplace)
     a = row.find("a", href=re.compile("work_total_view"))
 
     if not a:
@@ -89,7 +90,7 @@ f"""@everyone
         },
         timeout=20,
     )
-
+print("Discord:", r.status_code, r.text)
     new_seen.add(num)
 
 with open("state.json", "w", encoding="utf-8") as f:
@@ -98,4 +99,3 @@ print("===== START =====")
 print("HTML:", len(html))
 print("State:", seen)
 print("Webhook exists:", bool(DISCORD))
-print("Discord:", r.status_code, r.text)
