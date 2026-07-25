@@ -94,3 +94,7 @@ f"""@everyone
 
 with open("state.json", "w", encoding="utf-8") as f:
     json.dump(sorted(new_seen), f, ensure_ascii=False)
+print("===== START =====")
+print("HTML:", len(html))
+print("State:", seen)
+print("Webhook exists:", bool(DISCORD))
