@@ -13,10 +13,15 @@ KEYWORDS = [
     "Conrad",
 ]
 
+print("===== START =====")
+
+# 사이트 접속
 html = requests.get(URL, timeout=20).text
+print("HTML Length:", len(html))
 
 soup = BeautifulSoup(html, "lxml")
 
+# 채용 테이블 찾기
 target = None
 
 for table in soup.find_all("table"):
@@ -28,17 +33,23 @@ for table in soup.find_all("table"):
 if target is None:
     raise Exception("채용 테이블을 찾지 못했습니다.")
 
+print("채용 테이블 발견")
+
+# 이전 상태 읽기
 try:
     with open("state.json", "r", encoding="utf-8") as f:
         seen = set(json.load(f))
-except:
+except Exception:
     seen = set()
+
+print("기존 state:", seen)
+print("Webhook exists:", bool(DISCORD))
 
 new_seen = set(seen)
 
+# 공고 확인
 for row in target.find_all("tr"):
-print("공고번호:", num)
-print("근무지:", workplace)
+
     a = row.find("a", href=re.compile("work_total_view"))
 
     if not a:
@@ -53,9 +64,6 @@ print("근무지:", workplace)
 
     num = m.group(1)
 
-    if num in seen:
-        continue
-
     tds = row.find_all("td")
 
     if len(tds) < 9:
@@ -63,7 +71,16 @@ print("근무지:", workplace)
 
     workplace = tds[2].get_text(" ", strip=True)
 
+    print("--------------------------")
+    print("공고번호:", num)
+    print("근무지:", workplace)
+
+    if num in seen:
+        print("이미 확인한 공고 -> 건너뜀")
+        continue
+
     if not any(k.lower() in workplace.lower() for k in KEYWORDS):
+        print("키워드 불일치 -> 건너뜀")
         continue
 
     content = tds[4].get_text(" ", strip=True)
@@ -71,11 +88,13 @@ print("근무지:", workplace)
 
     url = "https://www.oulim.kr" + href
 
-    requests.post(
+    print("새 콘래드 공고 발견!")
+    print(content)
+
+    r = requests.post(
         DISCORD,
         json={
-            "content":
-f"""@everyone
+            "content": f"""@everyone
 
 📢 콘래드 공고 발견!
 
@@ -90,12 +109,15 @@ f"""@everyone
         },
         timeout=20,
     )
-print("Discord:", r.status_code, r.text)
+
+    print("Discord Status:", r.status_code)
+    print("Discord Response:", r.text)
+
     new_seen.add(num)
 
+# 상태 저장
 with open("state.json", "w", encoding="utf-8") as f:
     json.dump(sorted(new_seen), f, ensure_ascii=False)
-print("===== START =====")
-print("HTML:", len(html))
-print("State:", seen)
-print("Webhook exists:", bool(DISCORD))
+
+print("저장 완료")
+print("===== END =====")
