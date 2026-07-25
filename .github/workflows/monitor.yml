@@ -1,4 +1,4 @@
-name: together
+name: DISCORD_APPHOOK
 
 on:
   schedule:
